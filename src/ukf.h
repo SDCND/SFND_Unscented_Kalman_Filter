@@ -45,6 +45,9 @@ class UKF {
   // initially set to false, set to true in first call of ProcessMeasurement
   bool is_initialized_;
 
+  size_t previous_timestamp_;
+  double delta_t;
+
   // if this is false, laser measurements will be ignored (except for init)
   bool use_laser_;
 
@@ -59,6 +62,11 @@ class UKF {
 
   // predicted sigma points matrix
   Eigen::MatrixXd Xsig_pred_;
+
+  Eigen::MatrixXd H_;
+  Eigen::MatrixXd R_;
+  Eigen::VectorXd radar_z;
+  Eigen::VectorXd lidar_z;
 
   // time when the state is true, in us
   long long time_us_;
@@ -88,13 +96,22 @@ class UKF {
   Eigen::VectorXd weights_;
 
   // State dimension
-  int n_x_;
+  int n_x;
 
   // Augmented state dimension
-  int n_aug_;
+  int n_aug;
 
   // Sigma point spreading parameter
-  double lambda_;
+  double lambda;
+
+private:
+
+	void GenerateSigmaPoints(Eigen::MatrixXd* Xsig_out);
+	void AugmentedSigmaPoints(Eigen::MatrixXd* Xsig_out);
+	void SigmaPointPrediction(const Eigen::MatrixXd &Xsig_aug, const double &delta_t, Eigen::MatrixXd* Xsig_out);
+	void PredictMeanAndCovariance(const Eigen::MatrixXd &Xsig_pred, Eigen::VectorXd* x_out, Eigen::MatrixXd* P_out);
+	void PredictRadarMeasurement(const Eigen::MatrixXd &Xsig_pred, Eigen::MatrixXd* zsig_out, Eigen::VectorXd* z_out, Eigen::MatrixXd* S_out);
+	void UpdateState(const Eigen::MatrixXd &Xsig_pred, const Eigen::MatrixXd &Zsig, const Eigen::VectorXd &z_pred, const Eigen::MatrixXd &S);
 };
 
 #endif  // UKF_H
